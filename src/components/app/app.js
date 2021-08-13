@@ -16,12 +16,13 @@ export default class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-
             data : [
-                {label: "Going to learn react", important: true, id: 1},
-                {label: "That is so good", important: false, id: 2},
-                {label: "I need a break...", important: false, id: 3}
-            ]
+                {label: "Going to learn react", important: true, like: false, id: 1},
+                {label: "That is so good", important: false, like: false, id: 2},
+                {label: "I need a break...", important: false, like: false, id: 3}
+            ],
+            term: '',
+            filter: 'all'
         };
 
         this.maxId = 3;
@@ -53,21 +54,81 @@ export default class App extends Component {
         });
     }
 
+    toggleData = (id, component) => {
+        this.setState(({data}) => {
+            const index = data.findIndex(elem => elem.id === id);
+
+            const old = data[index];
+            const newItem = {...old, [component]: !old[component]};
+
+            const newArr =  [...data.slice(0, index),newItem, ...data.slice(index + 1)];
+            return {
+                data: newArr
+            }
+        });
+    }
+
+    onToggleImportant = (id) => {
+        this.toggleData(id, 'important');
+    }
+
+    onToggleLike = (id) => {
+       this.toggleData(id, 'like');
+    }
+
+    searchPost(items, term) {
+        if(term.length === 0) {
+            return items
+        }
+
+        return items.filter((item) => {
+            return item.label.indexOf(term) > -1
+        });
+    } 
+    
+    onUpdateSearch = (term) => {
+        this.setState({term});
+    }
+
+    filterPost(items, filter) {
+        if(filter === 'like') {
+            return items.filter(item => item.like);
+        } else {
+            return items;
+        }
+    }
+
+    onFilterSelect = (filter) => {
+        this.setState(({filter}));
+    }
+
    render() {
-    return (
-        <AppBlock>
-            <AppHeader/>
-            <div className='search-panel d-flex'>
-                <SearchPanel/>
-                <PostStatusFilter/>
-            </div>
-            <PostList 
-            posts={this.state.data}
-            onDelete={this.deleteItem}/>
-            <PostAddForm
-            onAdd={this.addItem}/>
-        </AppBlock>
-    )
+       const {term, data, filter} = this.state;
+       const liked = data.filter(item => item.like).length,
+       allPosts = data.length,
+       visiblePosts = this.filterPost(this.searchPost(data, term), filter);
+
+        return (
+            <AppBlock>
+                <AppHeader
+                liked={liked}
+                allPosts={allPosts}/>
+                <div className='search-panel d-flex'>
+                    <SearchPanel
+                    onUpdateSearch={this.onUpdateSearch}/>
+                    <PostStatusFilter
+                    filter={filter}
+                    onFilterSelect={this.onFilterSelect}/>
+                </div>
+                <PostList 
+                posts={visiblePosts}
+                onDelete={this.deleteItem}
+                onToggleImportant={this.onToggleImportant}
+                onToggleLike={this.onToggleLike}/>
+                <PostAddForm
+                onAdd={this.addItem}/>
+            </AppBlock>
+        )
    }
 }
 
