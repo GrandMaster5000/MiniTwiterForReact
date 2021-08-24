@@ -2,7 +2,7 @@ Project Name: Mini Twiter
 =====================
 ***Stack:***
 * HTML
-* SCSS
+* CSS
 * Styled Componend
 * JS
 * React
